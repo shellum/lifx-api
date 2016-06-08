@@ -1,0 +1,3 @@
+GET     /                                   controllers.ColorController.index
+GET     /setColor                           controllers.ColorController.setColor
+
