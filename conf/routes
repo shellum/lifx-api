@@ -1,3 +1,5 @@
 GET     /                                 controllers.ColorController.index
 GET     /setColor/:hue                    controllers.ColorController.setColor(hue: Int)
+GET     /fadeOut                          controllers.ColorController.fadeOut
+GET     /fadeIn                          controllers.ColorController.fadeIn
 

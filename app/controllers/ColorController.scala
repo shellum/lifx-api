@@ -30,6 +30,24 @@ class ColorController @Inject() extends Controller {
     }
   }
 
+  def fadeOut() = Action {
+    val hue = 100
+    val brightness = 5
+    setBulb(hue, saturation, brightness) match {
+      case Some(ip) => Ok(s"hsb: ${hue}, ${saturation}, ${brightness} for ${ip}")
+      case None => Ok("I couldn't find a bulb on the network")
+    }
+  }
+
+  def fadeIn() = Action {
+    val hue = 100
+    val brightness = 60
+    setBulb(hue, saturation, brightness) match {
+      case Some(ip) => Ok(s"hsb: ${hue}, ${saturation}, ${brightness} for ${ip}")
+      case None => Ok("I couldn't find a bulb on the network")
+    }
+  }
+
   def setBulb(hue: Int, saturation: Int, brightness: Int): Option[String] = {
     val normalizedHue = hue / 360.0 * 65535
     val normalizedSaturation = saturation / 100.0 * 65535
