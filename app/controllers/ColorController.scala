@@ -9,17 +9,28 @@ import utils.PacketUtils._
 @Singleton
 class ColorController @Inject() extends Controller {
 
-  val hue = 20
   val saturation = 90
   val brightness = 10
   val kelvins = 3000
-  val transitionTime = 2000
+  val transitionTime = 1000
 
   def index = Action {
     Ok(views.html.index())
   }
 
-  def setColor = Action {
+  def setColor(hue: Int) = Action {
+    val validatedHue = hue match {
+      case x if x<=0 => 1
+      case x if x>=360 => 359
+      case _ => hue
+    }
+    setBulb(validatedHue, saturation, brightness) match {
+      case Some(ip) => Ok(s"hsb: ${validatedHue}, ${saturation}, ${brightness} for ${ip}")
+      case None => Ok("I couldn't find a bulb on the network")
+    }
+  }
+
+  def setBulb(hue: Int, saturation: Int, brightness: Int): Option[String] = {
     val normalizedHue = hue / 360.0 * 65535
     val normalizedSaturation = saturation / 100.0 * 65535
     val normalizedBrightness = brightness / 100.0 * 65535
@@ -42,10 +53,11 @@ class ColorController @Inject() extends Controller {
         val sock = new DatagramSocket(PORT)
         sock.send(packet)
         sock.close()
-        Ok(s"hsb: ${normalizedHue}, ${normalizedSaturation}, ${normalizedBrightness}")
-      case None =>
-        Ok("I couldn't find a bulb on the network")
+        println("a")
+        Some(ip)
+      case _ =>
+        println("b")
+        None
     }
   }
-
 }
