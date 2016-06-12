@@ -14,7 +14,7 @@ class ColorController @Inject() extends Controller {
   val saturation = 90
   val brightness = 10
   val kelvins = 3000
-  val transitionTime = 1000
+  val transitionTime = 50
 
   def index = Action {
     Ok(views.html.index())
@@ -32,21 +32,18 @@ class ColorController @Inject() extends Controller {
     }
   }
 
-  def fadeOut() = Action {
-    getHSB() match {
-      case Some((hue, saturation, brightness)) => setBulb(hue, saturation, 5) match {
-        case Some(ip) => Ok(s"hsb: ${hue}, ${saturation}, ${brightness} for ${ip}")
-        case None => Ok("I couldn't find a bulb on the network")
-      }
+  def fade(brightness: Int) = Action {
+    val validatedBrightness: Int = brightness match {
+      case x if x<=0 => 1
+      case x if x>=50 =>50
+      case _ => brightness
     }
-  }
-
-  def fadeIn() = Action {
     getHSB() match {
-      case Some((hue, saturation, brightness)) => setBulb(hue, saturation, 50) match {
+      case Some((hue, saturation, _)) => setBulb(hue, saturation, validatedBrightness) match {
         case Some(ip) => Ok(s"hsb: ${hue}, ${saturation}, ${brightness} for ${ip}")
         case None => Ok("I couldn't find a bulb on the network")
       }
+      case None => Ok("no")
     }
   }
 
