@@ -1,9 +1,11 @@
 package controllers
 
-import java.net.{SocketAddress, InetAddress, DatagramPacket, DatagramSocket}
+import java.net.{DatagramPacket, DatagramSocket, InetAddress, SocketAddress}
 import javax.inject._
+
 import play.api._
 import play.api.mvc._
+import utils.PacketUtils
 import utils.PacketUtils._
 
 @Singleton
@@ -31,20 +33,27 @@ class ColorController @Inject() extends Controller {
   }
 
   def fadeOut() = Action {
-    val hue = 100
-    val brightness = 5
-    setBulb(hue, saturation, brightness) match {
-      case Some(ip) => Ok(s"hsb: ${hue}, ${saturation}, ${brightness} for ${ip}")
-      case None => Ok("I couldn't find a bulb on the network")
+    getHSB() match {
+      case Some((hue, saturation, brightness)) => setBulb(hue, saturation, 5) match {
+        case Some(ip) => Ok(s"hsb: ${hue}, ${saturation}, ${brightness} for ${ip}")
+        case None => Ok("I couldn't find a bulb on the network")
+      }
     }
   }
 
   def fadeIn() = Action {
-    val hue = 100
-    val brightness = 60
-    setBulb(hue, saturation, brightness) match {
-      case Some(ip) => Ok(s"hsb: ${hue}, ${saturation}, ${brightness} for ${ip}")
-      case None => Ok("I couldn't find a bulb on the network")
+    getHSB() match {
+      case Some((hue, saturation, brightness)) => setBulb(hue, saturation, 50) match {
+        case Some(ip) => Ok(s"hsb: ${hue}, ${saturation}, ${brightness} for ${ip}")
+        case None => Ok("I couldn't find a bulb on the network")
+      }
+    }
+  }
+
+  def getBulb() = Action {
+    PacketUtils.getHSB() match {
+      case Some(t) => Ok(s"hsb:${t._1} ${t._2} ${t._3}")
+      case None => Ok("no")
     }
   }
 
@@ -63,7 +72,6 @@ class ColorController @Inject() extends Controller {
           getLittleEndianBytes(transitionTime) ++
           Array[Byte](0x00, 0x00)
         val buf: Array[Byte] = makePacket(MESSAGE_SETCOLOR, colorPayload)
-
         val inet = InetAddress.getByName(ip)
         val bufferSize = buf.length
 
@@ -71,10 +79,8 @@ class ColorController @Inject() extends Controller {
         val sock = new DatagramSocket(PORT)
         sock.send(packet)
         sock.close()
-        println("a")
         Some(ip)
       case _ =>
-        println("b")
         None
     }
   }
